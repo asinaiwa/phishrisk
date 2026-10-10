@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhishRisk</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:'Courier New',monospace;background:#0a0e17;color:#c9d1d9;max-width:680px;margin:40px auto;padding:0 20px}
+h1{color:#00ff9d;text-shadow:0 0 10px rgba(0,255,157,.4);margin-bottom:4px}
+.sub{color:#8b949e;margin-top:0}
+form{display:flex;gap:10px;margin:28px 0}
+input{flex:1;padding:14px;font-size:15px;font-family:inherit;background:#161b22;border:1px solid #30363d;border-radius:6px;color:#c9d1d9}
+input:focus{outline:none;border-color:#00ff9d}
+button{padding:14px 24px;font-size:15px;font-family:inherit;font-weight:bold;background:#00ff9d;color:#0a0e17;border:none;border-radius:6px;cursor:pointer}
+.card{display:none;margin-top:20px;padding:24px;border-radius:10px;background:#0d1117;border:1px solid #30363d;border-left:5px solid #00ff9d}
+.verdict{font-size:24px;font-weight:bold;margin:0 0 12px}
+.row{color:#8b949e;font-size:14px;margin:8px 0;word-break:break-all}
+.label{display:flex;justify-content:space-between;font-size:13px;color:#8b949e;margin:16px 0 6px}
+.track{height:12px;background:#21262d;border-radius:6px;overflow:hidden;border:1px solid #30363d}
+.fill{height:100%;width:0;border-radius:6px;transition:width .5s}
+.note{color:#8b949e;font-size:12px;margin-top:14px}
+</style></head><body>
+<h1>&gt; PhishRisk_</h1>
+<p class="sub">// paste a link to check if it looks like phishing</p>
+<form id="f"><input id="u" type="text" placeholder="https://example.com" required><button>SCAN</button></form>
+<div class="card" id="card">
+  <div class="verdict" id="v"></div>
+  <div class="row"><b>URL:</b> <span id="url"></span></div>
+  <div class="label"><span>PHISHING PROBABILITY</span><span id="pct"></span></div>
+  <div class="track"><div class="fill" id="fill"></div></div>
+  <div class="note">Judged from the URL text only, not the page content.</div>
+</div>
+<script src="phish.js"></script>
+<script>
+let model = null;
+fetch('model.json').then(r => r.json()).then(m => model = m);
+document.getElementById('f').addEventListener('submit', e => {
+  e.preventDefault();
+  if (!model) { alert('Model is still loading, try again in a second.'); return; }
+  const url = document.getElementById('u').value.trim();
+  const p = score(url, model);
+  const bad = p >= model.threshold;
+  const color = bad ? '#ff4d5e' : '#00ff9d';
+  const card = document.getElementById('card');
+  card.style.display = 'block'; card.style.borderLeftColor = color;
+  const v = document.getElementById('v'); v.textContent = bad ? '⚠ PHISHING DETECTED' : '✓ LEGITIMATE'; v.style.color = color;
+  document.getElementById('url').textContent = url;
+  document.getElementById('pct').textContent = (p * 100).toFixed(1) + '%';
+  const fill = document.getElementById('fill'); fill.style.background = color; fill.style.width = (p * 100) + '%';
+});
+</script></body></html>
